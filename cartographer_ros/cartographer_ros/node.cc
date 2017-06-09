@@ -114,6 +114,7 @@ void Node::PublishTrajectoryStates(const ::ros::WallTimerEvent& timer_event) {
     stamped_transform.header.stamp = ToRos(trajectory_state.pose_estimate.time);
 
     const auto& tracking_to_local = trajectory_state.pose_estimate.pose;
+    const auto& submap_to_local = trajectory_state.pose_estimate.submap_pose;
     const Rigid3d tracking_to_map =
         trajectory_state.local_to_map * tracking_to_local;
 
@@ -150,6 +151,12 @@ void Node::PublishTrajectoryStates(const ::ros::WallTimerEvent& timer_event) {
         stamped_transform.child_frame_id = options_.published_frame;
         stamped_transform.transform = ToGeometryMsgTransform(
             tracking_to_local * (*trajectory_state.published_to_tracking));
+        stamped_transforms.push_back(stamped_transform);
+	//pulish submap to local!
+	
+	stamped_transform.header.frame_id = options_.odom_frame;
+        stamped_transform.child_frame_id = "submap_link";
+        stamped_transform.transform = ToGeometryMsgTransform( submap_to_local);   
         stamped_transforms.push_back(stamped_transform);
 
         tf_broadcaster_.sendTransform(stamped_transforms);
